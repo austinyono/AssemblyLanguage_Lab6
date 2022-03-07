@@ -1,0 +1,113 @@
+.data
+header:	.asciiz "=================================================\n"
+header1: .asciiz "Program Description: Subroutine & Array\n\n"
+header2: .asciiz "Author: Austin Yono\n\n"
+header3: .asciiz "Creation Date: 09/24/2019\n\n"
+
+input1:	.asciiz "How many numbers would you like to input: "
+input2: .asciiz "Input number: "
+output1: .asciiz "The total sum is: "
+error: 	.asciiz "ERROR: Input is out of range (3 - 10).\n"
+
+Array: 	.word 0,0,0,0,0,0,0,0,0,0
+
+.text
+li $v0, 4 #prints header message
+la $a0, header
+syscall
+la $a0, header1
+syscall
+la $a0, header2
+syscall
+la $a0, header3
+syscall
+la $a0, header
+syscall
+
+li $t6, 3 #stores values in registers to compare against user input
+li $t7, 10
+
+main:
+li $v0, 4 #prints message for user to input for size of array
+la $a0, input1
+syscall
+li $v0, 5 #gets user input for size of array
+syscall
+
+add $t0, $v0, $0 #adds user input to register $t0
+
+blt $t0, $t6, Error #checks if user input is less than 2
+bgt $t0, $t7, Error #checks if user input is grater than 11
+	
+add $a1, $t0, $0 #adds user input to register $a1
+la $a2, Array #loads the adress of array in register $a2
+	
+jal fillArray #jump and link to fillArray function
+	
+add $a1, $t0, $0 #adds user input to register $a1
+la $a2, Array #loads the adress of array in register $a2
+	
+jal addElement	#jump and link to addElement function
+	
+add $t4,$v1,$0	#after addelemt is called and returns the result in $v1, it is added to the register $t4
+
+li $v0,4  #prints output message
+la $a0, output1
+syscall
+li $v0,1 #prints the sum which was stored in $t4
+add $a0,$t4,$0
+syscall
+
+done:
+li $v0,10 #ends program
+syscall	
+
+fillArray: #fill array function
+add $t2, $a1, $0 #takes user input from $a1 and stores into $t2
+add $s0, $a2, $0 #takes the adress of array and stores into $s0
+
+inLoop:	
+beq $t2, $0, next #begins the loop and increments amount of times the user input.
+	
+li $v0, 4 #prints message for user to input element.
+la $a0, input2
+syscall
+li $v0, 5 #gets input from user.
+syscall
+	
+sw $v0, 0($s0) #takes user input and pushes onto the array
+addi $s0, $s0, 4
+addi $t2, $t2, -1
+	
+j inLoop
+
+next:	
+jr $ra #jumps to $ra
+
+addElement:
+add $t3, $a1, $0 #stores in $t3
+add $s0, $a2, $0 #stores in $s0
+
+loop:
+beq $t3, $0, back #jumps to back if true
+	
+lw $s4, 0($s0) #load word at 0
+	
+add $s5, $s5, $s4 #stores in s5
+	
+addi $s0, $s0, 4 #increments array by 4
+addi $t3, $t3, -1 #decrements by 1 to continue through loop
+	
+add $v1, $s5, $0
+	
+j loop
+
+back:
+jr $ra	#jumos to $ra													
+
+Error: #print error message
+li $v0, 4
+la $a0, error
+syscall
+	
+j main	
